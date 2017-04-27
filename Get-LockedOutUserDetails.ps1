@@ -47,14 +47,16 @@ $Events = Get-WinEvent -ComputerName $PDC.PDCEmulator -FilterHashtable @{Logname
 #
 # Search through all of the sorted Events for ones that match the specified UserName
 #
-$LockEvents = foreach ($event in $Events){
+$LockEvents = foreach ($event in $Events)
+    {
     $Event | Where-Object{$_.Properties[0].Value -like $LockedUser} | Select-Object -Property TimeCreated, @{Label='UserName'; Expression={$_.Properties[0].Value}},@{Label='ComputerName';Expression={$_.Properties[1].Value}}
-}
-If ($LockEvents.count -lt 1) {
-#[Microsoft.VisualBasic.Interaction]::MsgBox("The user $lockeduser was not found to have been locked out.","OKOnly,SystemModal,Exclamation","Warning")
-Write-Host "The user $lockeduser was not found to have been locked out."
-}
-Else {
-$LockEvents | Out-GridView
-}
-
+    }
+If ($LockEvents.count -lt 1) 
+    {
+    #[Microsoft.VisualBasic.Interaction]::MsgBox("The user $lockeduser was not found to have been locked out.","OKOnly,SystemModal,Exclamation","Warning")
+    Write-Host "The user $lockeduser was not found to have been locked out."
+    }
+Else 
+    {
+    $LockEvents | Out-GridView
+    }
