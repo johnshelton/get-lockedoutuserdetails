@@ -1,8 +1,8 @@
 ﻿#=======================================================================================
 # Get-LockedOutUserDetails
 # Created on: 2017-01-04
-# Version 1.0
-# Last Updated: 2017-04-28
+# Version 1.1
+# Last Updated: 2017-05-02
 # Last Updated by: John Shelton | c: 260-410-1200 | e: john.shelton@lucky13solutions.com
 #
 # Purpose: This script determines which AD server has the PDC role.  It then reviews the
@@ -12,14 +12,21 @@
 #          and the ComputerName that was using the credentials.
 # Notes: 
 # 
-# Change Log: Feature 1:  Output to HTML
+# Change Log: Feature 1:  Output to HTML.  Adjusteed the Parameter to make it required.
 # 
 #
 #=======================================================================================
 #
+# Enable setting the LockedUser via a param
+#
+param (
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+    [string] $LockedUser = $(throw "-LockedUser is required.")
+    )
+#
 # Clear & Define Variables
 #
-$LockedUser = ""
+# $LockedUser = ""
 [array] $LockEvents
 [array] $Events
 #
@@ -48,11 +55,6 @@ IF($PathExists -eq $False)
     New-Item -Path $path -ItemType  Directory
     }
 #
-# Enable setting the LockedUser via a param
-#
-param (
-    [string]$LockedUser = $(Read-Host "Input the Username who is locked")
-    )
 $LockedUser = $LockedUser.ToUpper()
 #
 # Clear the screen
