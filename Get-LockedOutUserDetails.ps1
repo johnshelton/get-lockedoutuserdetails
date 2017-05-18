@@ -47,7 +47,6 @@ $FilenamePrepend = 'temp_'
 $FullFilename = "Get-LockedOutUserDetails.ps1"
 $FileName = $FullFilename.Substring(0, $FullFilename.LastIndexOf('.'))
 $FileExt = '.html'
-$OutputFile = $path + $FilenamePrePend + '_' + $FileName + '_' + $ExecutionStamp + $FileExt
 #
 $PathExists = Test-Path $path
 IF($PathExists -eq $False)
@@ -85,25 +84,34 @@ Write-Host "Found a total of $EventsCount lockout events"
 #
 # Search through all of the sorted Events for ones that match the specified UserName
 #
-$Progress = 0
 $LockEvents = @()
-ForEach ($event in $Events)
-    {
-    $UserLockEvent = $Event | Where-Object{$_.Properties[0].Value -like $LockedUser} | Select-Object -Property TimeCreated, @{Label='UserName'; Expression={$_.Properties[0].Value}},@{Label='ComputerName';Expression={$_.Properties[1].Value}}; $I = $I+1
-    Write-Progress -Activity "Searching Events" -Status "Progress:" -PercentComplete (($Progress/$EventsCount)*100)
-    $Progress ++
-    $LockEvents += $UserLockEvent
-    }
-If ($LockEvents.count -lt 1) 
-    {
-    #[Microsoft.VisualBasic.Interaction]::MsgBox("The user $lockeduser was not found to have been locked out.","OKOnly,SystemModal,Exclamation","Warning")
-    Write-Host "The user $lockeduser was not found to have been locked out."
-    }
-Else 
-    {
-    # $LockEvents | Out-GridView
-    # $LockEvents | ConvertTo-HTML -head $HTMLHead &45;body "<H2> Lockout Events for $LockedUser" | Invoke-Item
-    Write-Host "The Results will be written to $OutputFile"
-    $LockEvents | ConvertTo-HTML TimeCreated,UserName,ComputerName -Title "Lock Events for $LockedUser" -body "$HTMLHead<H2> Lock Events for $LockedUser </H2> </P> The oldest event in the log is dated $OldestEvent </BR> The most recent event is dated $NewestEvent </P>" | Set-Content $OutputFile
-    Invoke-Item $OutputFile
-    }
+$Continue = "Y"
+While ($Continue -eq "Y" -or $Continue -eq "YES"){
+    If($RunCount -ge 1){$LockedUser = Read-Host "Please enter the username that you wish to generate the Locked Out report for:"}
+    $Progress = 0
+    $OutputFile = $path + $FilenamePrePend + '_' + $FileName + '_For_' + $LockedUser + '_' + $ExecutionStamp + $FileExt
+    ForEach ($event in $Events)
+        {
+        $UserLockEvent = $Event | Where-Object{$_.Properties[0].Value -like $LockedUser} | Select-Object -Property TimeCreated, @{Label='UserName'; Expression={$_.Properties[0].Value}},@{Label='ComputerName';Expression={$_.Properties[1].Value}}; $I = $I+1
+        Write-Progress -Activity "Searching Events" -Status "Progress:" -PercentComplete (($Progress/$EventsCount)*100)
+        $Progress ++
+        $LockEvents += $UserLockEvent
+        }
+    If ($LockEvents.count -lt 1) 
+        {
+        #[Microsoft.VisualBasic.Interaction]::MsgBox("The user $lockeduser was not found to have been locked out.","OKOnly,SystemModal,Exclamation","Warning")
+        Write-Host "The user $lockeduser was not found to have been locked out."
+        }
+    Else 
+        {
+        # $LockEvents | Out-GridView
+        # $LockEvents | ConvertTo-HTML -head $HTMLHead &45;body "<H2> Lockout Events for $LockedUser" | Invoke-Item
+        Write-Host "The Results for $LockedUser will be written to $OutputFile"
+        $LockEvents | Sort-Object TimeCreated -Descending | ConvertTo-HTML TimeCreated,UserName,ComputerName -Title "Lock Events for $LockedUser" -body "$HTMLHead<H2> Lock Events for $LockedUser </H2> </P> The oldest event in the log is dated $OldestEvent </BR> The most recent event is dated $NewestEvent </P>" | Set-Content $OutputFile
+        Invoke-Item $OutputFile
+        }
+    $Continue = Read-Host "Do you have another account to lookup? (Y or N)"
+    $Continue = $Continue.ToUpper()
+    Write-Host $Continue
+    $RunCount ++
+}
