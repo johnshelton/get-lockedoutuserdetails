@@ -84,10 +84,14 @@ Write-Host "Found a total of $EventsCount lockout events"
 #
 # Search through all of the sorted Events for ones that match the specified UserName
 #
-$LockEvents = @()
 $Continue = "Y"
 While ($Continue -eq "Y" -or $Continue -eq "YES"){
-    If($RunCount -ge 1){$LockedUser = Read-Host "Please enter the username that you wish to generate the Locked Out report for:"}
+    $LockEvents = @()    
+    If($RunCount -ge 1)
+    {
+        $LockedUser = Read-Host "Please enter the username that you wish to generate the Locked Out report for"
+        $LockedUser = $LockedUser.ToUpper()
+    }
     $Progress = 0
     $OutputFile = $path + $FilenamePrePend + '_' + $FileName + '_For_' + $LockedUser + '_' + $ExecutionStamp + $FileExt
     ForEach ($event in $Events)
@@ -112,6 +116,5 @@ While ($Continue -eq "Y" -or $Continue -eq "YES"){
         }
     $Continue = Read-Host "Do you have another account to lookup? (Y or N)"
     $Continue = $Continue.ToUpper()
-    Write-Host $Continue
     $RunCount ++
 }
